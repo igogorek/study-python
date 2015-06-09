@@ -1,11 +1,19 @@
-def clock_hands(angle):
-    # in degrees every second
-    hour_hand_moves = 360.0 / (360.0 * 12.0)
-    minute_hand_moves = 360.0 / 360.0
+import datetime
 
-    # angle = sec_of_hour*minute_hand_moves - sec_of_day*hour_hand_moves
-    # sec_of_day = hour_in_sec + sec_of_hour
-    sec_of_hour_list = [int((angle + hour * 360 * hour_hand_moves) / (minute_hand_moves - hour_hand_moves))
-                        for hour in xrange(12)]
-    return ['{0}:{1}:{2}'.format((12 - (12 - hour) % 12), sec_of_hour / 60, sec_of_hour % 60)
-            for hour, sec_of_hour in enumerate(sec_of_hour_list)]
+
+def clock_hands(angle):
+    def clock_hands_generator(angle):
+        hour_hand_speed = 360.0 / (3600.0 * 12.0)
+        minute_hand_speed = 360.0 / 3600.0
+        hour = 0
+        while hour < 11:
+            yield datetime.datetime.utcfromtimestamp(
+                int((angle + hour * 3600 * minute_hand_speed) / (minute_hand_speed - hour_hand_speed)))
+            hour += 1
+
+    return ['{:0>2}:{:0>2}:{:0>2}'.format((12 - (12 - a_time.hour) % 12), a_time.minute, a_time.second)
+            for a_time in clock_hands_generator(angle)]
+
+
+print clock_hands(270)
+
