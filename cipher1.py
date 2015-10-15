@@ -3,32 +3,45 @@ __author__ = 'igogor'
 
 import hashlib
 
+
 def hash_long(message):
-    hash_ = long(hashlib.sha256(message).hexdigit(), base=16)
-    print 'hash(message): {}'.format(hash_)
+    hash_ = long(hashlib.sha256(message).hexdigest(), base=16)
+    print 'hash({}): {}'.format(message, hash_)
     return hash_
 
-R_CONST = 11
-S_LIST = (11, 22, 33)
+
+R_CONST = hash_long('asdfasdfasdfasdfasdf')
+S_LIST = (hash_long('sdfdfalsdofiqjer'), hash_long('adfasdoqwer;lkqner;qwe'), hash_long('adlqoei;landlna'))
 MESSAGES = ('11', '22', '33')
 HASHES = [hash_long(message) for message in MESSAGES]
 MAX_64 = long('f' * 64, base=16)
 
 
-def modinv(num, n):
-    return pow(num, n - 2, n)  # todo check
+def extended_gcd(aa, bb):
+    lastremainder, remainder = abs(aa), abs(bb)
+    x, lastx, y, lasty = 0, 1, 1, 0
+    while remainder:
+        lastremainder, (quotient, remainder) = remainder, divmod(lastremainder, remainder)
+        x, lastx = lastx - quotient * x, x
+        y, lasty = lasty - quotient * y, y
+    return lastremainder, lastx * (-1 if aa < 0 else 1), lasty * (-1 if bb < 0 else 1)
+
+
+def modinv(a, m):
+    g, x, y = extended_gcd(a, m)
+    if g != 1:
+        raise ValueError
+    return x % m
 
 
 def genmod():
-    for n in range(start=R_CONST + 1):
+    for n in range((R_CONST + 1), R_CONST + 1000, 1):
+        # todo дят плейн вронг
         m1 = modinv(S_LIST[1] - S_LIST[0], n)
         m2 = modinv(S_LIST[2] - S_LIST[1], n)
         if m1 and m2 and m1 == m2:
             print 'n = {}'.format(n)
             yield n
-
-
-
 
 
 def calc_k(s1, s2, z1, z2, n):
@@ -54,7 +67,6 @@ def calc_r():
 
 
 def calc_main():
-
     for n in genmod():
         k = calc_k(s1=S_LIST[0], s2=S_LIST[1], z1=HASHES[0], z2=HASHES[1], n=n)
         dA = calc_dA(s=S_LIST[0], k=k, z=HASHES[0], r=R_CONST, n=n)
@@ -63,3 +75,6 @@ def calc_main():
             print 'getflag s: {}'.format(s_getflag)
             print 'signature: (r={}, s={})'.format(hex(R_CONST), hex(s_getflag))
             break
+
+
+calc_main()
